@@ -1,22 +1,25 @@
+import { useAuth } from '@/components/context/authContext'; // import context
 import { FIREBASE_API_KEY, FIREBASE_DB_URL } from '@/database/firebaseConfig';
 import '@/global.css';
 import { useState } from 'react';
 import {
-    Alert,
-    Image,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  Alert,
+  Image,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 
 export default function Login({ navigation }) {
+
+  const { setUsername, setRoleFlag } = useAuth();
     
   const input = "border border-[#21262d] rounded-lg px-3 py-[5px] my-4 text-base text-[15px] text-white bg-[#0d1117]";
 
@@ -73,8 +76,17 @@ export default function Login({ navigation }) {
       // 4. Check user role and console.log accordingly
       if (userData.role === 'admin') {
         console.log('1');
+        setRoleFlag(1); // admin
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
       } else if (userData.role === 'user') {
         console.log('2');
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Main' }],
+        });
       } else {
         console.log('Unknown role:', userData.role);
       }

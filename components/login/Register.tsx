@@ -92,7 +92,7 @@ export default function Register({ navigation }) {
               </Pressable>
             </View>
             <Text className="font-segoe font-bold text-white text-[20px] pb-[20px]">Create your free account</Text>
-            <Text className="font-segoe text-white text-[15px] pb-[10px]">Explore GitHub's core features for individuals and organizations.</Text>
+            <Text className="font-segoe text-white text-[15px] pb-[10px]">Explore KJPosts' core features for all individuals.</Text>
           </View>
 
           <KeyboardAvoidingView

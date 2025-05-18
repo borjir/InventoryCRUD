@@ -1,4 +1,6 @@
+import { AuthProvider } from '@/components/context/authContext'; // adjust path if needed
 import { useFontLoader } from '@/components/fonts/FontLoader';
+import 'react-native-gesture-handler';
 import 'react-native-reanimated';
 import '../global.css';
 
@@ -11,6 +13,8 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <Navigation />
+    <AuthProvider>
+      <Navigation />
+    </AuthProvider>
   );
 }
