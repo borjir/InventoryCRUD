@@ -12,7 +12,7 @@ import {
     View
 } from "react-native";
 
-export default function Login() {
+export default function Login({ navigation }) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -49,6 +49,7 @@ export default function Login() {
                     className="border border-[#21262d] rounded-lg px-3 py-[5px] my-4 text-base text-[15px] text-white bg-[#0d1117]"
                     placeholder="Password"
                     placeholderTextColor="#999"
+                    secureTextEntry={true}
                 />
                 <TouchableOpacity
                     className="flex items-center bg-[#2ea043] rounded-lg py-[8px] mt-2"
@@ -58,9 +59,9 @@ export default function Login() {
             </KeyboardAvoidingView>
             <View className="bg-none w-[90%] flex-row gap-1 justify-center border-[#30363d] border rounded py-7 px-4 mt-7">
                 <Text className="text-white font-segoe text-[15px]">
-                    New to JPosts?  
+                    New to KJPosts?  
                 </Text>
-                <Pressable onPress={() => console.log('Pressed!')}>
+                <Pressable onPress={() => navigation.navigate('Register')}>
                     {({ pressed }) => (
                     <Text
                         className={`text-[#58a6ff] text-[15px] font-segoe ${
