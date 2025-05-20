@@ -28,6 +28,9 @@ export default function EditPost() {
   const [description, setDescription] = useState(post?.description || '');
   const [loading, setLoading] = useState(false);
 
+  const [titleFocused, setTitleFocused] = useState(false);
+  const [descFocused, setDescFocused] = useState(false);
+
   const inputStyle =
     'flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]';
 
@@ -49,7 +52,7 @@ export default function EditPost() {
             try {
               await updatePost(post.id, title, description);
               ToastAndroid.show('Post updated successfully!', ToastAndroid.SHORT);
-              navigation.navigate('Main', { screen: 'MyPosts' });
+              navigation.replace('Main', { screen: 'MyPosts' });
             } catch (error) {
               console.error(error);
               ToastAndroid.show('Failed to update post', ToastAndroid.SHORT);
@@ -70,11 +73,13 @@ export default function EditPost() {
           <View className="border-t-2 border-[#30363d] p-[20px]">
             <Text className="text-white font-segoe font-bold text-[20px]">Post Title</Text>
             <TextInput
-              className={inputStyle}
               placeholder="Write your post title here..."
               placeholderTextColor="#7c7c7d"
               value={title}
               onChangeText={setTitle}
+              onFocus={() => setTitleFocused(true)}
+              onBlur={() => setTitleFocused(false)}
+              className={`${inputStyle} ${ titleFocused ? 'border-[#58a6ff]' : 'border-[#21262d]' }`}
             />
             <Text className="text-white font-bold text-[20px] mt-[20px]">Post Description</Text>
             <TextInput
@@ -83,9 +88,11 @@ export default function EditPost() {
               textAlignVertical="top"
               placeholder="Write your post description here..."
               placeholderTextColor="#7c7c7d"
-              className={`${inputStyle} h-[250px]`}
               value={description}
               onChangeText={setDescription}
+              onFocus={() => setDescFocused(true)}
+              onBlur={() => setDescFocused(false)}
+              className={`${inputStyle} h-[250px] ${ descFocused ? 'border-[#58a6ff]' : 'border-[#21262d]' }`}
             />
             <TouchableOpacity
               className="bg-[#58a6ff] rounded-lg py-[7px] px-[10px] justify-center items-center mt-[20px]"
