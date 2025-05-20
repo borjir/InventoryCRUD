@@ -3,15 +3,16 @@ import { addPost } from '@/database/create/AddPost';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import {
-    ActivityIndicator,
-    Keyboard,
-    ScrollView,
-    Text,
-    TextInput,
-    ToastAndroid,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View
+  ActivityIndicator,
+  Alert,
+  Keyboard,
+  ScrollView,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 
 export default function AddPost() {
@@ -23,35 +24,46 @@ export default function AddPost() {
   const [loading, setLoading] = useState(false); // 🆕 loading state
 
   const inputStyle =
-    'flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base text-[18px] text-white bg-[#161b22]';
+    'flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]';
 
-  const handleAddPost = async () => {
+  const handleAddPost = () => {
     if (!title.trim() || !description.trim()) {
       ToastAndroid.show('Title and description cannot be empty', ToastAndroid.SHORT);
       return;
     }
 
-    setLoading(true); // <-- This was missing
-
-    try {
-      await addPost(title, description, username);
-      ToastAndroid.show('Post added successfully!', ToastAndroid.SHORT);
-      navigation.navigate('Main', { screen: 'Posts' });
-
-    } catch (error) {
-      console.error(error);
-      ToastAndroid.show('Failed to add post', ToastAndroid.SHORT);
-    } finally {
-        setLoading(false);
-    }
-  };
+    Alert.alert(
+      'Confirm Add',
+      'Are you sure you want to add this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Yes', 
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await addPost(title, description, username);
+              ToastAndroid.show('Post added successfully!', ToastAndroid.SHORT);
+              navigation.navigate('Main', { screen: 'MyPosts' });
+            } catch (error) {
+              console.error(error);
+              ToastAndroid.show('Failed to add post', ToastAndroid.SHORT);
+            } finally {
+              setLoading(false);
+            }
+          }
+        }
+      ],
+      { cancelable: true }
+    );
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <View className="flex-1 bg-[#0d1117]">
           <View className="border-t-2 border-[#30363d] p-[20px]">
-            <Text className="text-white font-bold text-[20px]">Post Title</Text>
+            <Text className="text-white font-segoe font-bold text-[20px]">Post Title</Text>
             <TextInput
               className={inputStyle}
               placeholder="Write your post title here..."
@@ -77,10 +89,10 @@ export default function AddPost() {
               {loading ? (
                 <View className="flex-row items-center gap-2">
                   <ActivityIndicator size="small" color="#fff" />
-                  <Text className="text-white font-bold">Adding...</Text>
+                  <Text className="text-white font-segoe font-bold">Adding...</Text>
                 </View>
               ) : (
-                <Text className="text-white font-bold">Add Post</Text>
+                <Text className="text-white font-segoe font-bold">Add Post</Text>
               )}
             </TouchableOpacity>
           </View>

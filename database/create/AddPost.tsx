@@ -1,7 +1,17 @@
-// services/addPostService.ts
 import { FIREBASE_DB_URL } from '@/database/firebaseConfig';
 
 export const addPost = async (title: string, description: string, author: string) => {
+  const now = new Date();
+
+  const formattedDate = now.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
   const response = await fetch(`${FIREBASE_DB_URL}/posts.json`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -9,7 +19,8 @@ export const addPost = async (title: string, description: string, author: string
       post_title: title,
       post_description: description,
       post_author: author,
-      post_date: new Date().toISOString(),
+      post_date: formattedDate,
+      post_timestamp: now.getTime(), // ✅ Add raw timestamp
     }),
   });
 

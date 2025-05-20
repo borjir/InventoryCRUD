@@ -1,19 +1,31 @@
 import {
   handleDelete,
-  PersonItem,
   useDebounce,
 } from '@/database/delete/DeleteUser';
 import { db } from '@/database/firebaseConfig';
 import { FontAwesome } from '@expo/vector-icons';
-import { onValue, ref } from 'firebase/database';
-import React, { useEffect, useMemo, useState } from 'react';
+import { onValue, ref, } from 'firebase/database';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Text,
   TextInput,
-  View
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
+export const PersonItem = memo(({ id, name, email, onDelete }) => (
+    <View className="bg-[#161b22] p-[15px] rounded-lg mb-[10px] border-[1px] border-[#30363d] flex-row justify-between items-center">
+      <View>
+        <Text className="font-bold text-white text-[18px]">{name}</Text>
+        <Text className="text-[#c9d1d9] text-[14px]">{email}</Text>
+      </View>
+      <TouchableOpacity onPress={() => onDelete(id)}>
+        <FontAwesome name="trash" size={24} color="#fa5e55" />
+      </TouchableOpacity>
+    </View>
+  ));
 
 export default function Accounts() {
   const [people, setPeople] = useState([]);
@@ -58,7 +70,7 @@ export default function Accounts() {
   }, [debouncedSearch, people]);
 
   const inputStyle =
-    'flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] text-white bg-[#161b22]';
+    'flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]';
 
   return (
     
@@ -70,17 +82,17 @@ export default function Accounts() {
             placeholderTextColor="#999"
             value={search}
             onChangeText={setSearch}
-            className="flex-1 text-white"
+            className="flex-1 font-segoe text-white"
             />
         </View>
         {loading ? (
             <View className="flex-1 items-center mt-10">
-            <Text className="text-white mb-4">Loading users...</Text>
+            <Text className="text-white font-segoe mb-4">Loading users...</Text>
             <ActivityIndicator size="large" color="#999" />
             </View>
         ) : filtered.length === 0 ? (
             <View className="flex-1 items-center mt-10">
-            <Text className="text-[#888] text-[16px]">No users found.</Text>
+            <Text className="text-[#888] font-segoe text-[16px]">No users found.</Text>
             </View>
         ) : (
             <FlatList

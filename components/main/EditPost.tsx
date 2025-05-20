@@ -1,9 +1,109 @@
-import { Text, View } from 'react-native';
+import { useAuth } from '@/components/context/authContext';
+import { updatePost } from '@/database/update/UpdatePost'; // <-- backend separated update function
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useState } from 'react';
+import {
+    ActivityIndicator,
+    Alert,
+    Keyboard,
+    ScrollView,
+    Text,
+    TextInput,
+    ToastAndroid,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+} from 'react-native';
 
-export default function EditPost(){
-    return(
-        <View className="flex-1 bg-[#0d1117]">
-            <Text>I AM GAY 2.0</Text>
-        </View>
+export default function EditPost() {
+  const { username } = useAuth();
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  // Receive the post object via route params
+  const { post } = route.params || {};
+
+  // Initialize with existing post data
+  const [title, setTitle] = useState(post?.title || '');
+  const [description, setDescription] = useState(post?.description || '');
+  const [loading, setLoading] = useState(false);
+
+  const inputStyle =
+    'flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]';
+
+  const handleEditPost = () => {
+    if (!title.trim() || !description.trim()) {
+      ToastAndroid.show('Title and description cannot be empty', ToastAndroid.SHORT);
+      return;
+    }
+
+    Alert.alert(
+      'Confirm Edit',
+      'Are you sure you want to update this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await updatePost(post.id, title, description);
+              ToastAndroid.show('Post updated successfully!', ToastAndroid.SHORT);
+              navigation.navigate('Main', { screen: 'MyPosts' });
+            } catch (error) {
+              console.error(error);
+              ToastAndroid.show('Failed to update post', ToastAndroid.SHORT);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
     );
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View className="flex-1 bg-[#0d1117]">
+          <View className="border-t-2 border-[#30363d] p-[20px]">
+            <Text className="text-white font-segoe font-bold text-[20px]">Post Title</Text>
+            <TextInput
+              className={inputStyle}
+              placeholder="Write your post title here..."
+              placeholderTextColor="#7c7c7d"
+              value={title}
+              onChangeText={setTitle}
+            />
+            <Text className="text-white font-bold text-[20px] mt-[20px]">Post Description</Text>
+            <TextInput
+              multiline
+              numberOfLines={10}
+              textAlignVertical="top"
+              placeholder="Write your post description here..."
+              placeholderTextColor="#7c7c7d"
+              className={`${inputStyle} h-[250px]`}
+              value={description}
+              onChangeText={setDescription}
+            />
+            <TouchableOpacity
+              className="bg-[#58a6ff] rounded-lg py-[7px] px-[10px] justify-center items-center mt-[20px]"
+              onPress={handleEditPost}
+              disabled={loading}
+            >
+              {loading ? (
+                <View className="flex-row items-center gap-2">
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text className="text-white font-segoe font-bold">Updating...</Text>
+                </View>
+              ) : (
+                <Text className="text-white font-segoe font-bold">Update Post</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </TouchableWithoutFeedback>
+  );
 }

@@ -3,11 +3,11 @@ import { FontAwesome } from '@expo/vector-icons';
 import { get, ref, remove, update } from 'firebase/database';
 import React, { memo, useEffect, useState } from 'react';
 import {
-    Alert,
-    Text,
-    ToastAndroid,
-    TouchableOpacity,
-    View
+  Alert,
+  Text,
+  ToastAndroid,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export const handleDelete = async (id: string) => {

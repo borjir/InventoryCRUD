@@ -5,8 +5,8 @@ import Main from '@/app/Main';
 import Login from '@/components/login/Login';
 import Register from '@/components/login/Register';
 import AddPost from '@/components/main/AddPost'; // Adjust path
+import EditPost from '@/components/main/EditPost';
 import PostDetails from '@/components/main/PostDetails';
-
 const Stack = createNativeStackNavigator();
 
 export default function Navigation() {
@@ -33,6 +33,18 @@ export default function Navigation() {
           options={{
             headerShown: true,
             title: 'Post Details',
+             headerStyle: {
+                backgroundColor: '#0d1117',
+              },
+            headerTintColor: '#fff',
+          }}
+        />
+        <Stack.Screen
+          name="EditPost"
+          component={EditPost}
+          options={{
+            headerShown: true,
+            title: 'Edit Post',
              headerStyle: {
                 backgroundColor: '#0d1117',
               },

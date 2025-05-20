@@ -2,7 +2,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Text, TouchableOpacity, View } from 'react-native';
 
 export function CustomHeaderLeft() {
   const navigation = useNavigation();
@@ -10,7 +10,7 @@ export function CustomHeaderLeft() {
   return (
     <TouchableOpacity
       onPress={() => navigation.toggleDrawer()}
-      style={styles.headerButtonLeft}
+      className="ml-[15px] border border-[#30363d] p-[6px] rounded-[8px]"
     >
       <Ionicons name="menu" size={20} color="#fff" />
     </TouchableOpacity>
@@ -20,20 +20,22 @@ export function CustomHeaderLeft() {
 export function CustomHeaderTitle({ routeName }: { routeName: string }) {
   const titleMap: Record<string, string> = {
     Posts: 'All Posts',
-    MyPosts: 'Posts',
+    MyPosts: 'My Posts',
     Accounts: 'Accounts',
   };
 
   const title = titleMap[routeName] || 'KJPosts';
 
   return (
-    <View style={styles.headerTitleContainer}>
+    <View className="flex-row items-center gap-[8px]">
       <Image
         source={require('@/assets/images/logo.png')}
-        style={styles.logo}
+        className="w-[40px] h-[40px]"
         resizeMode="contain"
       />
-      <Text style={styles.headerTitleText}>{title}</Text>
+      <Text className="text-white text-[18px] font-bold font-['Segoe UI']">
+        {title}
+      </Text>
     </View>
   );
 }
@@ -50,9 +52,9 @@ export function CustomHeaderRight() {
           routes: [{ name: 'Login' }],
         });
       }}
-      style={styles.logoutButton}
+      className="mr-[15px] justify-center items-center bg-[#161b22] px-[10px] py-[10px] rounded-[8px] border-2 border-[#30363d]"
     >
-      <Text style={styles.logoutButtonText}>Log out</Text>
+      <Text className="text-white font-['Segoe UI']">Log out</Text>
     </TouchableOpacity>
   );
 }
@@ -67,7 +69,7 @@ export function CustomDrawerContent(props) {
   };
 
   return (
-    <DrawerContentScrollView {...props} style={styles.drawerScrollView}>
+    <DrawerContentScrollView {...props} className="bg-[#161b22]">
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const { drawerLabel } = descriptors[route.key].options;
@@ -77,13 +79,16 @@ export function CustomDrawerContent(props) {
           <TouchableOpacity
             key={route.key}
             onPress={() => navigation.navigate(route.name)}
-            style={[
-              styles.drawerItem,
-              focused && styles.drawerItemFocused,
-            ]}
+            className={`flex-row items-center py-[12px] px-[20px] gap-[12px] border-b-2 ${
+              focused ? 'bg-[#2d3138] border-b-[#444a50]' : 'border-b-transparent'
+            }`}
           >
             <Ionicons name={iconName} size={20} color="#ffffff" />
-            <Text style={[styles.drawerItemText, focused && styles.drawerItemTextFocused]}>
+            <Text
+              className={`text-white text-[16px] ${
+                focused ? 'font-bold' : ''
+              }`}
+            >
               {drawerLabel ?? route.name}
             </Text>
           </TouchableOpacity>
@@ -92,65 +97,3 @@ export function CustomDrawerContent(props) {
     </DrawerContentScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  headerButtonLeft: {
-    borderColor: '#30363d',
-    borderWidth: 1,
-    padding: 6,
-    borderRadius: 8,
-    marginLeft: 15,
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-  },
-  headerTitleText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    fontFamily: 'Segoe UI', // Optional: ensure this is linked properly
-  },
-  logoutButton: {
-    marginRight: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#161b22',
-    padding: 10,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#30363d',
-  },
-  logoutButtonText: {
-    color: '#ffffff',
-    fontFamily: 'Segoe UI',
-  },
-  drawerScrollView: {
-    backgroundColor: '#161b22',
-  },
-  drawerItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-    gap: 12,
-  },
-  drawerItemFocused: {
-    backgroundColor: '#2d3138',
-    borderBottomColor: '#444a50',
-  },
-  drawerItemText: {
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  drawerItemTextFocused: {
-    fontWeight: 'bold',
-  },
-});

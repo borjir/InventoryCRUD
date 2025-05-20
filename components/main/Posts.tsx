@@ -1,19 +1,23 @@
 import { FontAwesome } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { onValue, ref } from 'firebase/database';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Image,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
-import { useDebounce } from '@/database/delete/DeleteUser'; // Assuming debounce is exported there
+import { useDebounce } from '@/database/delete/DeleteUser'; // debounce hook
 import { db } from '@/database/firebaseConfig';
+
+dayjs.extend(customParseFormat);
 
 export default function Posts() {
   const navigation = useNavigation();
@@ -25,46 +29,55 @@ export default function Posts() {
   useEffect(() => {
     const postsRef = ref(db, 'posts');
     const unsubscribe = onValue(postsRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
+      const data = snapshot.val();
+
+      if (data) {
         const parsed = Object.entries(data).map(([key, value]: [string, any]) => ({
-            id: key,
-            title: value.post_title,
-            name: value.post_author,
-            date: value.post_date,
-            description: value.post_description,
+          id: key,
+          title: value.post_title,
+          name: value.post_author,
+          date: value.post_date,
+          description: value.post_description,
         }));
 
         // Sort by date descending (latest first)
         const sorted = parsed.sort((a, b) => {
-            const dateA = new Date(a.date);
-            const dateB = new Date(b.date);
-            return dateB.getTime() - dateA.getTime();
+          const dateA = dayjs(a.date, 'MMM DD, YYYY, h:mm A').valueOf();
+          const dateB = dayjs(b.date, 'MMM DD, YYYY, h:mm A').valueOf();
+          return dateB - dateA;
         });
 
         setPosts((prev) => {
-        const isSame = JSON.stringify(prev) === JSON.stringify(sorted);
-        return isSame ? prev : sorted;
+          const isSame = JSON.stringify(prev) === JSON.stringify(sorted);
+          return isSame ? prev : sorted;
         });
-        } else {
+      } else {
         setPosts([]);
-        }
-        setLoading(false);
+      }
+      setLoading(false);
     });
 
     return () => unsubscribe();
-    }, []);
-
+  }, []);
 
   const filteredPosts = useMemo(() => {
     const searchText = debouncedSearch.toLowerCase();
-    return posts.filter(({ title = '' }) =>
+
+    // Filter posts by title (case-insensitive)
+    const filtered = posts.filter(({ title = '' }) =>
       title.toLowerCase().includes(searchText)
     );
+
+    // Sort filtered posts by date descending (latest first)
+    return filtered.sort((a, b) => {
+      const dateA = dayjs(a.date, 'MMM DD, YYYY, h:mm A').valueOf();
+      const dateB = dayjs(b.date, 'MMM DD, YYYY, h:mm A').valueOf();
+      return dateB - dateA;
+    });
   }, [debouncedSearch, posts]);
 
   const inputStyle =
-    'flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] text-white bg-[#161b22]';
+    'flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] font-segoe text-white bg-[#161b22]';
 
   const renderItem = ({ item: post }) => (
     <View className="flex-col gap-2 border-[#30363d] border-y py-5 rounded">
@@ -98,7 +111,7 @@ export default function Posts() {
         <TextInput
           placeholder="Search posts..."
           placeholderTextColor="#999"
-          className="flex-1 text-white"
+          className="flex-1 font-segoe text-white"
           value={search}
           onChangeText={setSearch}
         />
@@ -108,30 +121,31 @@ export default function Posts() {
           className="bg-[#2ea043] rounded-lg py-[7px] px-[10px] mb-[30px]"
           onPress={() => navigation.navigate('AddPost')}
         >
-          <Text className="text-white font-bold">+ Add Post</Text>
+          <Text className="text-white font-segoe font-bold">+ Add Post</Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View className="flex-1 items-center mt-10">
-          <Text className="text-white mb-4">Loading posts...</Text>
+          <Text className="text-white font-segoe mb-4">Loading posts...</Text>
           <ActivityIndicator size="large" color="#999" />
         </View>
       ) : filteredPosts.length === 0 ? (
         <View className="flex-1 items-center mt-10">
-          <Text className="text-[#888] text-[16px]">No posts found.</Text>
+          <Text className="text-[#888] font-segoe text-[16px]">No posts found.</Text>
         </View>
       ) : (
         <FlatList
-        data={filteredPosts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        initialNumToRender={10}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews={true}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 30 }}
+          data={filteredPosts}
+          keyExtractor={(item) => item.id}
+          renderItem={renderItem}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 30 }}
+          keyboardShouldPersistTaps="handled"
         />
       )}
     </View>
