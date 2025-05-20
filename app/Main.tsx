@@ -1,15 +1,15 @@
 // Navigation.tsx
 import { useAuth } from '@/components/context/authContext'; // adjust path as needed
 import { createDrawerNavigator } from '@react-navigation/drawer';
-import Accounts from './Accounts';
+import Accounts from '../components/main/Accounts';
+import MyPosts from '../components/main/MyPosts';
+import Posts from '../components/main/Posts';
 import {
-    CustomDrawerContent,
-    CustomHeaderLeft,
-    CustomHeaderRight,
-    CustomHeaderTitle,
+  CustomDrawerContent,
+  CustomHeaderLeft,
+  CustomHeaderRight,
+  CustomHeaderTitle,
 } from './Drawer';
-import MyPosts from './MyPosts';
-import Posts from './Posts';
 
 const Drawer = createDrawerNavigator();
 
@@ -35,9 +35,9 @@ export default function Main() {
         headerTitle: () => <CustomHeaderTitle routeName={route.name} />,
       })}
     >
-      <Drawer.Screen name="Posts" component={Posts} />
-      <Drawer.Screen name="MyPosts" component={MyPosts} />
-      {roleFlag == 1 && ( <Drawer.Screen name="Accounts" component={Accounts} /> )}
+      <Drawer.Screen name="Posts" component={Posts} options={{ drawerLabel: 'All Posts' }}/>
+      <Drawer.Screen name="MyPosts" component={MyPosts} options={{ drawerLabel: 'My Posts' }}/>
+      {roleFlag == 1 && ( <Drawer.Screen name="Accounts" component={Accounts} options={{ drawerLabel: 'Accounts' }}/> )}
     </Drawer.Navigator>
   );
 }

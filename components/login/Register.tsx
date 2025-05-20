@@ -1,5 +1,5 @@
 
-import { FIREBASE_API_KEY, FIREBASE_DB_URL } from '@/database/firebaseConfig';
+import { registerUser } from '@/database/create/AddUser';
 import { Formik } from 'formik';
 import { useState } from 'react';
 import {
@@ -39,47 +39,6 @@ export default function Register({ navigation }) {
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
 
-  const registerUser = async (email: string, password: string, username: string) => {
-    try {
-      // 1. Create user in Firebase Auth
-      const usernameCheckRes = await fetch(`${FIREBASE_DB_URL}/users.json`);
-      const users = await usernameCheckRes.json();
-      const usernameTaken = users && Object.values(users).some((user: any) => user.username === username);
-
-      if (usernameTaken) {
-        throw new Error('Username is already taken.');
-      }
-      const authRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, returnSecureToken: true }),
-      });
-
-      const authData = await authRes.json();
-      if (!authRes.ok) {
-        if (authData.error.message === 'EMAIL_EXISTS') {
-          throw new Error('This email is already in use.');
-        }
-        throw new Error(authData.error.message);
-      }
-
-      const { localId } = authData;
-
-      // 2. Store user info in Realtime DB
-      await fetch(`${FIREBASE_DB_URL}/users/${localId}.json`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, role: 'user' }),
-      });
-
-      ToastAndroid.show('Registration successful!', ToastAndroid.SHORT);
-      navigation.navigate('Login');
-
-    } catch (error: any) {
-      alert(error.message || 'Registration failed');
-    }
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
@@ -104,8 +63,15 @@ export default function Register({ navigation }) {
               initialValues={{ email: '', password: '', username: '' }}
               validationSchema={validationSchema}
               onSubmit={async (values, { setSubmitting }) => {
-                await registerUser(values.email, values.password, values.username);
+                const result = await registerUser(values.email, values.password, values.username);
                 setSubmitting(false);
+
+                if (result.success) {
+                  ToastAndroid.show('Registration successful!', ToastAndroid.SHORT);
+                  navigation.navigate('Login');
+                } else {
+                  alert(result.error);
+                }
               }}
             >
               {({ handleChange, handleBlur, handleSubmit, values, errors, touched, isSubmitting }) => (
@@ -173,10 +139,15 @@ export default function Register({ navigation }) {
                   <TouchableOpacity
                     onPress={handleSubmit}
                     disabled={isSubmitting}
-                    className={`bg-[#1f2328] rounded-lg p-[12px] items-center mt-5 ${isSubmitting ? 'opacity-50' : ''}`}
+                    className={`bg-[#1f2328] rounded-lg p-[12px] items-center mt-5 `}
                   >
                     {isSubmitting ? (
-                      <ActivityIndicator color="white" />
+                      <View className="flex-row items-center gap-2">
+                        <ActivityIndicator size="small" color="#fff" />
+                        <Text className="font-segoe font-bold text-white text-[15px]">
+                          Signing up...
+                        </Text>
+                      </View>
                     ) : (
                       <Text className="font-segoe font-bold text-white text-[17px]">Register</Text>
                     )}

@@ -1,8 +1,9 @@
 import { useAuth } from '@/components/context/authContext'; // import context
-import { FIREBASE_API_KEY, FIREBASE_DB_URL } from '@/database/firebaseConfig';
+import { loginUserService } from '@/database/read/LoginUser';
 import '@/global.css';
 import { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Keyboard,
@@ -14,7 +15,7 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from "react-native";
 
 export default function Login({ navigation }) {
@@ -39,63 +40,23 @@ export default function Login({ navigation }) {
     }
 
     setLoading(true);
-
     try {
-      // 1. If user entered a username, fetch users to find their email
-      let email = usernameOrEmail;
-      if (!usernameOrEmail.includes('@')) {
-        // Lookup email by username in DB
-        const res = await fetch(`${FIREBASE_DB_URL}/users.json`);
-        const users = await res.json();
+      const { userData } = await loginUserService(usernameOrEmail, password);
 
-        const userEntry = users && Object.entries(users).find(([key, user]: any) => user.username === usernameOrEmail);
-        if (!userEntry) throw new Error('User not found');
-        email = userEntry[1].email;
-      }
-
-      // 2. Login with email and password via Firebase Auth REST API
-      const authRes = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, returnSecureToken: true }),
-      });
-      const authData = await authRes.json();
-
-      if (!authRes.ok) {
-        throw new Error(authData.error.message || 'Login failed');
-      }
-
-      const { localId } = authData;
-
-      // 3. Fetch user info from Realtime Database by localId
-      const userRes = await fetch(`${FIREBASE_DB_URL}/users/${localId}.json`);
-      const userData = await userRes.json();
-
-      if (!userData) throw new Error('User data not found');
-
-      // 4. Check user role and console.log accordingly
+      // Set global context role
       if (userData.role === 'admin') {
-        console.log('1');
         setRoleFlag(1); // admin
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
-      } else if (userData.role === 'user') {
-        console.log('2');
-        navigation.reset({
-          index: 0,
-          routes: [{ name: 'Main' }],
-        });
-      } else {
-        console.log('Unknown role:', userData.role);
       }
 
-      // You could navigate to home or dashboard here
-      // navigation.navigate('Home');
-
+      setUsername(userData.username); // optional if used
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Main' }],
+      });
     } catch (error: any) {
-      Alert.alert('Login Error', error.message);
+      let message = 'Login failed. Please try again.';
+
+      Alert.alert('Login Error', message);
     } finally {
       setLoading(false);
     }
@@ -153,9 +114,18 @@ export default function Login({ navigation }) {
                         onPress={loginUser}
                         disabled={loading}
                     >
-                        <Text className="font-segoe font-bold text-white text-[15px]">
-                          {loading ? 'Signing in...' : 'Sign in'}
-                        </Text>
+                        {loading ? (
+                          <View className="flex-row items-center gap-2">
+                            <ActivityIndicator size="small" color="#fff" />
+                            <Text className="font-segoe font-bold text-white text-[15px]">
+                              Signing in...
+                            </Text>
+                          </View>
+                        ) : (
+                          <Text className="font-segoe font-bold text-white text-[15px]">
+                            Sign in
+                          </Text>
+                        )}
                     </TouchableOpacity>
                 </KeyboardAvoidingView>
                 <View className="bg-none w-[90%] flex-row gap-1 justify-center border-[#30363d] border rounded py-7 px-4 mt-7">
