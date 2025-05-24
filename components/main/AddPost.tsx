@@ -27,6 +27,7 @@ export default function AddPost() {
   const [description, setDescription] = useState("");
   const [imageUri, setimageUri] = useState("");
   const [loading, setLoading] = useState(false); // 🆕 loading state
+  const [imageAspectRatio, setImageAspectRatio] = useState(1.5); // default to 3:2
 
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]";
@@ -41,9 +42,21 @@ export default function AddPost() {
       quality: 1,
     });
     if (!result.canceled) {
-      setimageUri(result.assets[0].uri);
+      const uri = result.assets[0].uri;
+      Image.getSize(
+        uri,
+        (width, height) => {
+          setImageAspectRatio(width / height);
+          setimageUri(uri);
+        },
+        () => {
+          // fallback aspect ratio
+          setImageAspectRatio(3 / 2);
+          setimageUri(uri);
+        }
+      );
     } else {
-      ToastAndroid.show("you did not pick image", ToastAndroid.SHORT);
+      ToastAndroid.show("You did not pick an image", ToastAndroid.SHORT);
     }
   };
 
@@ -116,12 +129,16 @@ export default function AddPost() {
                     Add Image
                   </Text>
                 </TouchableOpacity>
-                <View className="justify-center items-center mt-5 w-[350px] h-[350px] bg-gray-50 rounded-lg">
+                <View className="justify-center items-center mt-5 w-full bg-gray-50 rounded-lg overflow-hidden">
                   {imageUri && (
                     <Image
                       source={{ uri: imageUri }}
-                      className="w-full h-full rounded-xl"
-                      resizeMode="contain"
+                      style={{
+                        width: "100%",
+                        aspectRatio: imageAspectRatio,
+                        borderRadius: 12,
+                        resizeMode: "cover",
+                      }}
                     />
                   )}
                 </View>

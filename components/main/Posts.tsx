@@ -32,32 +32,58 @@ export default function Posts() {
       const data = snapshot.val();
 
       if (data) {
-        const parsed = Object.entries(data).map(
-          ([key, value]: [string, any]) => ({
-            id: key,
-            title: value.post_title,
-            imageUri: value.post_imageupload,
-            name: value.post_author,
-            date: value.post_date,
-            description: value.post_description,
-          })
+        const entries = Object.entries(data).map(([key, value]: [string, any]) => ({
+          id: key,
+          title: value.post_title,
+          imageUri: value.post_imageupload,
+          name: value.post_author,
+          date: value.post_date,
+          description: value.post_description,
+        }));
+
+        const fetchImageSizes = entries.map(
+          (post) =>
+            new Promise((resolve) => {
+              Image.getSize(
+                post.imageUri,
+                (width, height) => {
+                  resolve({
+                    ...post,
+                    imageWidth: width,
+                    imageHeight: height,
+                    aspectRatio: width / height,
+                  });
+                },
+                () => {
+                  // fallback if image fails to load
+                  resolve({
+                    ...post,
+                    imageWidth: 3,
+                    imageHeight: 2,
+                    aspectRatio: 3 / 2,
+                  });
+                }
+              );
+            })
         );
 
-        // Sort by date descending (latest first)
-        const sorted = parsed.sort((a, b) => {
-          const dateA = dayjs(a.date, "MMM DD, YYYY, h:mm A").valueOf();
-          const dateB = dayjs(b.date, "MMM DD, YYYY, h:mm A").valueOf();
-          return dateB - dateA;
-        });
+        Promise.all(fetchImageSizes).then((postsWithSize: any) => {
+          const sorted = postsWithSize.sort((a, b) => {
+            const dateA = dayjs(a.date, "MMM DD, YYYY, h:mm A").valueOf();
+            const dateB = dayjs(b.date, "MMM DD, YYYY, h:mm A").valueOf();
+            return dateB - dateA;
+          });
 
-        setPosts((prev) => {
-          const isSame = JSON.stringify(prev) === JSON.stringify(sorted);
-          return isSame ? prev : sorted;
+          setPosts((prev) => {
+            const isSame = JSON.stringify(prev) === JSON.stringify(sorted);
+            return isSame ? prev : sorted;
+          });
+          setLoading(false);
         });
       } else {
         setPosts([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
@@ -82,13 +108,18 @@ export default function Posts() {
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] font-segoe text-white bg-[#161b22]";
 
+    
   const renderItem = ({ item: post }) => (
+    
     <View className="flex-col gap-2 border-[#30363d] border-y py-5 rounded">
-      <View className="flex-col justify-start bg-white items-center w-full rounded-xl">
+      <View className="flex-col justify-start bg-white items-center w-full rounded-xl overflow-hidden">
         <Image
           source={{ uri: post.imageUri }}
-          style={{ aspectRatio: 3.0, height: 200, width: "100%" }}
-          resizeMode="contain"
+          style={{
+            width: "100%",
+            aspectRatio: post.aspectRatio || 3.0, // fallback
+            resizeMode: "cover",
+          }}
         />
       </View>
       <View>

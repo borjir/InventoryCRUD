@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/context/authContext";
 import { updatePost } from "@/database/update/UpdatePost"; // <-- backend separated update function
 import { useNavigation, useRoute } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -34,6 +34,8 @@ export default function EditPost() {
 
   const [titleFocused, setTitleFocused] = useState(false);
   const [descFocused, setDescFocused] = useState(false);
+
+  const [imageAspectRatio, setImageAspectRatio] = useState(1.5); // default 3:2
 
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl p-3 my-4 text-base font-segoe text-[18px] text-white bg-[#161b22]";
@@ -76,6 +78,21 @@ export default function EditPost() {
     );
   };
 
+  useEffect(() => {
+    if (imageUri) {
+      Image.getSize(
+        imageUri,
+        (width, height) => {
+          setImageAspectRatio(width / height);
+        },
+        () => {
+          // fallback if error
+          setImageAspectRatio(3 / 2);
+        }
+      );
+    }
+  }, [imageUri]);
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -101,11 +118,19 @@ export default function EditPost() {
                   titleFocused ? "border-[#58a6ff]" : "border-[#21262d]"
                 }`}
               />
-              <Image
-                source={{ uri: post.imageUri }}
-                className="w-[350px] h-[350px] rounded-lg"
-                resizeMode="contain"
-              />
+              {imageUri && (
+                <View className="justify-center items-center mt-5 w-full bg-gray-50 rounded-lg overflow-hidden">
+                  <Image
+                    source={{ uri: imageUri }}
+                    style={{
+                      width: "100%",
+                      aspectRatio: imageAspectRatio,
+                      borderRadius: 12,
+                      resizeMode: "cover",
+                    }}
+                  />
+                </View>
+              )}
               <Text className="text-white font-bold text-[20px] mt-[20px]">
                 Post Description
               </Text>
