@@ -22,8 +22,7 @@ export default function PostDetails({ route }) {
 
   return (
     <ScrollView
-      contentContainerStyle={{ flexGrow: 1, padding: 20 }}
-      className="bg-[#0d1117]"
+      className="bg-[#0d1117] flex-1"
       showsVerticalScrollIndicator={false}
     >
       <View className="flex-1 bg-[#0d1117] p-[20px] mb-[50px]">

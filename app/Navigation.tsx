@@ -1,13 +1,25 @@
 // Navigation.tsx
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
 import Main from '@/app/Main';
 import Login from '@/components/login/Login';
 import Register from '@/components/login/Register';
 import AddPost from '@/components/main/AddPost'; // Adjust path
 import EditPost from '@/components/main/EditPost';
 import PostDetails from '@/components/main/PostDetails';
+import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { TouchableOpacity } from 'react-native';
+
 const Stack = createNativeStackNavigator();
+
+function CloseButton() {
+  const navigation = useNavigation();
+  return (
+    <TouchableOpacity onPress={() => navigation.goBack()} className="mr-[32px]">
+      <Ionicons name="close" size={24} color="#fff" />
+    </TouchableOpacity>
+  );
+}
 
 export default function Navigation() {
   return (
@@ -25,6 +37,7 @@ export default function Navigation() {
                 backgroundColor: '#0d1117',
               },
             headerTintColor: '#fff',
+            headerLeft: () => <CloseButton />,
           }}
         />
         <Stack.Screen
@@ -49,6 +62,7 @@ export default function Navigation() {
                 backgroundColor: '#0d1117',
               },
             headerTintColor: '#fff',
+            headerLeft: () => <CloseButton />,
           }}
         />
       </Stack.Navigator>

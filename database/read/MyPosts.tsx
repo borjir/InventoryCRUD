@@ -43,11 +43,7 @@ export const listenToUserPosts = (
             date: value.post_date,
             author: value.post_author,
           }))
-          .sort(
-            (a, b) =>
-              dayjs(b.date, DATE_FORMAT).valueOf() -
-              dayjs(a.date, DATE_FORMAT).valueOf()
-          );
+          .sort((a, b) => b.id.localeCompare(a.id));
       }
 
       callback(userPosts);

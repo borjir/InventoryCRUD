@@ -1,9 +1,7 @@
+// frontend/Posts.tsx
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import dayjs from "dayjs";
-import customParseFormat from "dayjs/plugin/customParseFormat";
-import { onValue, ref } from "firebase/database";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -14,110 +12,33 @@ import {
   View,
 } from "react-native";
 
-import { useDebounce } from "@/database/delete/DeleteUser"; // debounce hook
-import { db } from "@/database/firebaseConfig";
-
-dayjs.extend(customParseFormat);
+import { useDebounce } from "@/database/delete/DeleteUser";
+import { useFetchPosts } from "@/database/read/AllPosts"; // new backend hook
 
 export default function Posts() {
   const navigation = useNavigation();
-  const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(true);
   const debouncedSearch = useDebounce(search, 300);
-
-  useEffect(() => {
-    const postsRef = ref(db, "posts");
-    const unsubscribe = onValue(postsRef, (snapshot) => {
-      const data = snapshot.val();
-
-      if (data) {
-        const entries = Object.entries(data).map(([key, value]: [string, any]) => ({
-          id: key,
-          title: value.post_title,
-          imageUri: value.post_imageupload,
-          name: value.post_author,
-          date: value.post_date,
-          description: value.post_description,
-        }));
-
-        const fetchImageSizes = entries.map(
-          (post) =>
-            new Promise((resolve) => {
-              Image.getSize(
-                post.imageUri,
-                (width, height) => {
-                  resolve({
-                    ...post,
-                    imageWidth: width,
-                    imageHeight: height,
-                    aspectRatio: width / height,
-                  });
-                },
-                () => {
-                  // fallback if image fails to load
-                  resolve({
-                    ...post,
-                    imageWidth: 3,
-                    imageHeight: 2,
-                    aspectRatio: 3 / 2,
-                  });
-                }
-              );
-            })
-        );
-
-        Promise.all(fetchImageSizes).then((postsWithSize: any) => {
-          const sorted = postsWithSize.sort((a, b) => {
-            const dateA = dayjs(a.date, "MMM DD, YYYY, h:mm A").valueOf();
-            const dateB = dayjs(b.date, "MMM DD, YYYY, h:mm A").valueOf();
-            return dateB - dateA;
-          });
-
-          setPosts((prev) => {
-            const isSame = JSON.stringify(prev) === JSON.stringify(sorted);
-            return isSame ? prev : sorted;
-          });
-          setLoading(false);
-        });
-      } else {
-        setPosts([]);
-        setLoading(false);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { posts, loading } = useFetchPosts();
 
   const filteredPosts = useMemo(() => {
     const searchText = debouncedSearch.toLowerCase();
-
-    // Filter posts by title (case-insensitive)
-    const filtered = posts.filter(({ title = "" }) =>
-      title.toLowerCase().includes(searchText)
-    );
-
-    // Sort filtered posts by date descending (latest first)
-    return filtered.sort((a, b) => {
-      const dateA = dayjs(a.date, "MMM DD, YYYY, h:mm A").valueOf();
-      const dateB = dayjs(b.date, "MMM DD, YYYY, h:mm A").valueOf();
-      return dateB - dateA;
-    });
+    return posts
+      .filter(({ title = "" }) => title.toLowerCase().includes(searchText))
+      .sort((a, b) => b.id.localeCompare(a.id)); // Already sorted, but safe fallback
   }, [debouncedSearch, posts]);
 
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] font-segoe text-white bg-[#161b22]";
 
-    
   const renderItem = ({ item: post }) => (
-    
     <View className="flex-col gap-2 border-[#30363d] border-y py-5 rounded">
       <View className="flex-col justify-start bg-white items-center w-full rounded-xl overflow-hidden">
         <Image
           source={{ uri: post.imageUri }}
           style={{
             width: "100%",
-            aspectRatio: post.aspectRatio || 3.0, // fallback
+            aspectRatio: post.aspectRatio || 3 / 2,
             resizeMode: "cover",
           }}
         />
@@ -180,7 +101,7 @@ export default function Posts() {
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={5}
-          removeClippedSubviews={true}
+          removeClippedSubviews
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 30 }}
           keyboardShouldPersistTaps="handled"

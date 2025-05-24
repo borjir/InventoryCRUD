@@ -62,10 +62,12 @@ export default function AddPost() {
 
   const handleAddPost = () => {
     if (!title.trim() || !description.trim()) {
-      ToastAndroid.show(
-        "Title and description cannot be empty",
-        ToastAndroid.SHORT
-      );
+      Alert.alert("Missing Fields", "Please enter both a title and description.");
+      return;
+    }
+
+    if (!imageUri) {
+      Alert.alert("Image Required", "Please upload an image before submitting.");
       return;
     }
 
@@ -123,7 +125,7 @@ export default function AddPost() {
                   }`}
                 />
                 <TouchableOpacity
-                  className="bg-[#2ea043] rounded-lg py-[10px] px-[10px] justify-center items-center mt-[20px]"
+                  className="bg-[#58a6ff] rounded-lg py-[7px] px-[10px] justify-center items-center mt-[20px]"
                   onPress={imagePicker}>
                   <Text className="text-white font-segoe font-bold">
                     Add Image
