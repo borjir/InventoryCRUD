@@ -33,6 +33,8 @@ export const useFetchPosts = () => {
           name: value.post_author,
           date: value.post_date,
           description: value.post_description,
+          likes: value.likes || {},
+          commentCount: value.commentCount || {},
         }));
 
         const fetchImageSizes = entries.map(

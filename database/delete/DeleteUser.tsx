@@ -29,26 +29,67 @@ export const handleDelete = async (id: string) => {
         style: 'destructive',
         onPress: async () => {
           try {
-            await remove(userRef);
+            await remove(userRef); // Step 1: Remove user
 
-            const postsRef = ref(db, 'posts');
-            const postsSnap = await get(postsRef);
+            const updates = {};
+            const commentCountsToAdjust = {}; // { [postId]: numToSubtract }
 
+            const postsSnap = await get(ref(db, 'posts'));
             if (postsSnap.exists()) {
-              const updates = {};
               postsSnap.forEach((child) => {
                 const post = child.val();
+                const postId = child.key;
+
+                // Step 2: Anonymize post author
                 if (post.post_author === username) {
-                  updates[`posts/${child.key}/post_author`] = 'DELETED USER';
+                  updates[`posts/${postId}`] = null;
+                }
+
+                // Step 3: Remove user's like
+                if (post.likes && post.likes[username]) {
+                  updates[`posts/${postId}/likes/${username}`] = null;
                 }
               });
+            }
 
-              if (Object.keys(updates).length > 0) {
-                await update(ref(db), updates);
+            const commentsSnap = await get(ref(db, 'comments'));
+            if (commentsSnap.exists()) {
+              commentsSnap.forEach((postCommentsSnap) => {
+                const postId = postCommentsSnap.key;
+                let userCommentCount = 0;
+
+                postCommentsSnap.forEach((commentSnap) => {
+                  const comment = commentSnap.val();
+                  if (comment.username === username) {
+                    updates[`comments/${postId}/${commentSnap.key}`] = null;
+                    userCommentCount++;
+                  }
+                });
+
+                if (userCommentCount > 0) {
+                  commentCountsToAdjust[postId] = userCommentCount;
+                }
+              });
+            }
+
+            // Step 4: Adjust commentCount for each post
+            const postKeys = Object.keys(commentCountsToAdjust);
+            for (const postId of postKeys) {
+              const postRef = ref(db, `posts/${postId}/commentCount`);
+              const countSnap = await get(postRef);
+              if (countSnap.exists()) {
+                const oldCount = countSnap.val();
+                const newCount = Math.max(0, oldCount - commentCountsToAdjust[postId]);
+                updates[`posts/${postId}/commentCount`] = newCount;
               }
             }
 
-            ToastAndroid.show('User deleted and posts updated.', ToastAndroid.SHORT);
+            // Step 5: Apply all updates
+            if (Object.keys(updates).length > 0) {
+              await update(ref(db), updates);
+            }
+
+            ToastAndroid.show('User and all related data deleted.', ToastAndroid.SHORT);
           } catch (err) {
             console.error(err);
             ToastAndroid.show('Failed to delete user.', ToastAndroid.SHORT);

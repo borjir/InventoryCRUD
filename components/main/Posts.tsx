@@ -12,14 +12,27 @@ import {
   View,
 } from "react-native";
 
+import { useAuth } from "@/components/context/authContext";
 import { useDebounce } from "@/database/delete/DeleteUser";
+import { db } from "@/database/firebaseConfig";
 import { useFetchPosts } from "@/database/read/AllPosts"; // new backend hook
+import { ref, update } from "firebase/database";
 
 export default function Posts() {
   const navigation = useNavigation();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 300);
   const { posts, loading } = useFetchPosts();
+
+  const { username } = useAuth();
+
+  const toggleLike = (postId: string, currentLikes: Record<string, boolean>) => {
+    const liked = !!currentLikes[username];
+    const postLikesRef = ref(db, `posts/${postId}/likes`);
+    update(postLikesRef, {
+      [username]: liked ? null : true, // Remove like if already liked
+    });
+  };
 
   const filteredPosts = useMemo(() => {
     const searchText = debouncedSearch.toLowerCase();
@@ -31,36 +44,74 @@ export default function Posts() {
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] font-segoe text-white bg-[#161b22]";
 
-  const renderItem = ({ item: post }) => (
-    <View className="flex-col gap-2 border-[#30363d] border-y py-5 rounded">
-      <View className="flex-col justify-start bg-white items-center w-full rounded-xl overflow-hidden">
-        <Image
-          source={{ uri: post.imageUri }}
-          style={{
-            width: "100%",
-            aspectRatio: post.aspectRatio || 3 / 2,
-            resizeMode: "cover",
-          }}
-        />
-      </View>
-      <View>
-        <Text className="font-segoe text-white font-bold text-[30px]">
-          {post.title}
-        </Text>
-        <View className="flex-row items-center gap-5">
-          <Text className="font-segoe text-white font-bold text-[15px]">
-            By: {post.name}
-          </Text>
-          <Text className="font-segoe text-white text-[15px]">{post.date}</Text>
-        </View>
-      </View>
+  const renderItem = ({ item: post }) => {
+    const liked = !!post.likes?.[username]; // check if current user liked it
+    const likeCount = post.likes ? Object.keys(post.likes).length : 0;
+
+    return (
       <TouchableOpacity
-        className="bg-[#2ea043] rounded-lg py-[7px] px-[10px] justify-center items-center"
-        onPress={() => navigation.navigate("PostDetails", { post })}>
-        <Text className="text-white font-bold">View Post</Text>
+        onPress={() => navigation.navigate("PostDetails", { post })}
+      >
+        <View className="flex-col gap-2 border-[#30363d] border-y py-5 rounded">
+          <View className="flex-col justify-start bg-white items-center w-full rounded-xl overflow-hidden">
+            <Image
+              source={{ uri: post.imageUri }}
+              style={{
+                width: "100%",
+                aspectRatio: post.aspectRatio || 3 / 2,
+                resizeMode: "cover",
+              }}
+            />
+          </View>
+          <View>
+            <Text className="font-segoe text-white font-bold text-[30px]">
+              {post.title}
+            </Text>
+            <View className="flex-row items-center gap-5">
+              <Text className="font-segoe text-white font-bold text-[15px]">
+                By: {post.name}
+              </Text>
+              <Text className="font-segoe text-white text-[15px]">{post.date}</Text>
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-2">
+            {/* Like Button */}
+            <TouchableOpacity
+              className="flex-row items-center gap-2"
+              onPress={() => toggleLike(post.id, post.likes || {})}
+            >
+              <FontAwesome
+                name="heart"
+                size={24}
+                color={liked ? "#e25555" : "#999"}
+                solid={liked}
+              />
+              {likeCount > 0 && (
+                <Text className="font-segoe text-white font-bold text-[15px] mr-3">
+                  {likeCount}
+                </Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Placeholder for comment button */}
+            <TouchableOpacity 
+            className="flex-row items-center gap-2"
+            onPress={()=> navigation.navigate('PostDetails', { post })}
+            >
+              <FontAwesome name="comment" size={24} color="#58a6ff" />
+              {post.commentCount > 0 && (
+                <Text className="font-segoe text-white font-bold text-[15px]">
+                  {post.commentCount}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
       </TouchableOpacity>
-    </View>
-  );
+    );
+  };
+
 
   return (
     <View className="flex-1 bg-[#0d1117] p-[20px]">
