@@ -11,9 +11,12 @@ interface Post {
   name: string;
   date: string;
   description: string;
+  aspectRatio: number;
   imageWidth?: number;
   imageHeight?: number;
-  aspectRatio?: number;
+  likes: Record<string, boolean>;
+  commentCount: number;
+  timestamp?: number;
 }
 
 export const useFetchPosts = () => {
@@ -22,6 +25,7 @@ export const useFetchPosts = () => {
 
   useEffect(() => {
     const postsRef = ref(db, "posts");
+
     const unsubscribe = onValue(postsRef, (snapshot) => {
       const data = snapshot.val();
 
@@ -34,12 +38,18 @@ export const useFetchPosts = () => {
           date: value.post_date,
           description: value.post_description,
           likes: value.likes || {},
-          commentCount: value.commentCount || {},
+          commentCount: value.commentCount || 0,
+          timestamp: value.timestamp || 0,
         }));
 
         const fetchImageSizes = entries.map(
           (post) =>
             new Promise<Post>((resolve) => {
+              if (!post.imageUri) {
+                resolve({ ...post, aspectRatio: 3 / 2 });
+                return;
+              }
+
               Image.getSize(
                 post.imageUri,
                 (width, height) => {
@@ -63,7 +73,11 @@ export const useFetchPosts = () => {
         );
 
         Promise.all(fetchImageSizes).then((postsWithSize) => {
-          const sorted = postsWithSize.sort((a, b) => b.id.localeCompare(a.id));
+          const sorted = postsWithSize.sort((a, b) => {
+            // Prefer sorting by timestamp (if available)
+            return (b.timestamp ?? 0) - (a.timestamp ?? 0);
+          });
+
           setPosts(sorted);
           setLoading(false);
         });

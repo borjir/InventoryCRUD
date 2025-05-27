@@ -119,7 +119,7 @@ export default function EditPost() {
                 }`}
               />
               {imageUri && (
-                <View className="justify-center items-center mt-5 w-full bg-gray-50 rounded-lg overflow-hidden">
+                <View className="justify-center items-center mt-5 w-full rounded-lg overflow-hidden">
                   <Image
                     source={{ uri: imageUri }}
                     style={{

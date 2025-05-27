@@ -1,10 +1,10 @@
-import { useAuth } from "@/components/context/authContext"; // Adjust path if needed
-import { deletePostById } from "@/database/delete/deletePost"; // ⬅️ Import backend delete
-import { useDebounce } from "@/database/delete/DeleteUser"; // Adjust path if needed
-import { listenToUserPosts } from "@/database/read/MyPosts"; // adjust path
+import { useAuth } from "@/components/context/authContext";
+import { deletePostById } from "@/database/delete/deletePost";
+import { useDebounce } from "@/database/delete/DeleteUser";
+import { listenToUserPosts } from "@/database/read/MyPosts";
 import { FontAwesome } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -36,58 +36,71 @@ export default function MyPosts() {
     );
   }, [debouncedSearch, posts]);
 
+  const renderItem = useCallback(({ item: post }) => {
+    const likeCount = post.likes ? Object.keys(post.likes).length : 0;
+    const commentCount = typeof post.commentCount === "number" ? post.commentCount : 0;
+
+    return (
+      <View className="bg-[#161b22] p-[15px] rounded-lg mb-[10px] border-[1px] gap-2 border-[#30363d] flex-row justify-between items-center">
+        <View className="flex-1 pr-2">
+          <Text className="font-bold font-segoe text-white text-[18px]">
+            {post.title}
+          </Text>
+          <Text className="text-[#c9d1d9] font-segoe text-[14px]">
+            {post.date}
+          </Text>
+          <View className="flex-row gap-2 mt-[5px]">
+            <FontAwesome name="heart" size={18} color="#fa5e55" />
+            <Text className="text-white text-[14px] pr-2">{likeCount}</Text>
+            <FontAwesome name="comment" size={18} color="#58a6ff" />
+            <Text className="text-white text-[14px]">{commentCount}</Text>
+          </View>
+        </View>
+        <View className="mr-[10px] flex-row gap-3 justify-center items-center">
+          <TouchableOpacity
+            onPress={() => navigation.navigate("EditPost", { post })}
+          >
+            <FontAwesome name="edit" size={24} color="#58a6ff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                "Delete Post",
+                "Are you sure you want to delete this post?",
+                [
+                  { text: "Cancel", style: "cancel" },
+                  {
+                    text: "Delete",
+                    style: "destructive",
+                    onPress: async () => {
+                      const result = await deletePostById(post.id);
+                      if (result.success) {
+                        ToastAndroid.show(
+                          "Post deleted successfully",
+                          ToastAndroid.SHORT
+                        );
+                      } else {
+                        ToastAndroid.show(
+                          "Failed to delete post",
+                          ToastAndroid.SHORT
+                        );
+                      }
+                    },
+                  },
+                ],
+                { cancelable: true }
+              )
+            }
+          >
+            <FontAwesome name="trash" size={24} color="#fa5e55" />
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }, [navigation]);
+
   const inputStyle =
     "flex-row items-center gap-2 border border-[#30363d] rounded-xl px-3 py-[2px] my-4 text-base text-[18px] text-white bg-[#161b22]";
-
-  const renderItem = ({ item: post }) => (
-    <View className="bg-[#161b22] p-[15px] rounded-lg mb-[10px] border-[1px] gap-2 border-[#30363d] flex-row justify-between items-center">
-      <View className="flex-1 pr-2">
-        <Text className="font-bold font-segoe text-white text-[18px]">
-          {post.title}
-        </Text>
-        <Text className="text-[#c9d1d9] font-segoe text-[14px]">
-          {post.date}
-        </Text>
-      </View>
-      <View className="mr-[10px] flex-row gap-3 justify-center items-center">
-        <TouchableOpacity
-          onPress={() => navigation.navigate("EditPost", { post })}>
-          <FontAwesome name="edit" size={24} color="#58a6ff" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              "Delete Post",
-              "Are you sure you want to delete this post?",
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete",
-                  style: "destructive",
-                  onPress: async () => {
-                    const result = await deletePostById(post.id);
-                    if (result.success) {
-                      ToastAndroid.show(
-                        "Post deleted successfully",
-                        ToastAndroid.SHORT
-                      );
-                    } else {
-                      ToastAndroid.show(
-                        "Failed to delete post",
-                        ToastAndroid.SHORT
-                      );
-                    }
-                  },
-                },
-              ],
-              { cancelable: true }
-            )
-          }>
-          <FontAwesome name="trash" size={24} color="#fa5e55" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
 
   return (
     <View className="flex-1 bg-[#0d1117] p-[20px]">
@@ -104,7 +117,8 @@ export default function MyPosts() {
       <View className="flex-row justify-end">
         <TouchableOpacity
           className="bg-[#2ea043] rounded-lg py-[7px] px-[10px] mb-[30px]"
-          onPress={() => navigation.navigate("AddPost")}>
+          onPress={() => navigation.navigate("AddPost")}
+        >
           <Text className="text-white font-segoe font-bold">+ Add Post</Text>
         </TouchableOpacity>
       </View>

@@ -12,9 +12,9 @@ export interface Post {
   description: string;
   date: string;
   author: string;
+  likes?: Record<string, boolean>;
+  commentCount?: number;
 }
-
-const DATE_FORMAT = "MMM DD, YYYY, h:mm A";
 
 export const listenToUserPosts = (
   username: string,
@@ -37,13 +37,15 @@ export const listenToUserPosts = (
         userPosts = Object.entries(data)
           .map(([key, value]: [string, any]) => ({
             id: key,
-            title: value.post_title,
-            imageUri: value.post_imageupload,
-            description: value.post_description,
-            date: value.post_date,
-            author: value.post_author,
+            title: value.post_title || "",
+            imageUri: value.post_imageupload || "",
+            description: value.post_description || "",
+            date: value.post_date || "",
+            author: value.post_author || "",
+            likes: value.likes || {},
+            commentCount: value.commentCount || 0,
           }))
-          .sort((a, b) => b.id.localeCompare(a.id));
+          .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
       }
 
       callback(userPosts);
