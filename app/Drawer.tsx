@@ -1,4 +1,5 @@
 // components/navigation/DrawerUI.tsx
+import { useAuth } from '@/components/context/authContext'; // add this
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerContentScrollView } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
@@ -22,6 +23,7 @@ export function CustomHeaderTitle({ routeName }: { routeName: string }) {
     Posts: 'All Posts',
     MyPosts: 'My Posts',
     Accounts: 'Accounts',
+    Reports: 'Reports', //
   };
 
   const title = titleMap[routeName] || 'KJPosts';
@@ -42,11 +44,14 @@ export function CustomHeaderTitle({ routeName }: { routeName: string }) {
 
 export function CustomHeaderRight() {
   const navigation = useNavigation();
-
+  const { setUsername, setRoleFlag } = useAuth(); // access contex
+  
   return (
     <TouchableOpacity
       onPress={() => {
         console.log('Logging out...');
+        setUsername('');
+        setRoleFlag(0); // 👈 THIS IS CRUCIAL
         navigation.reset({
           index: 0,
           routes: [{ name: 'Login' }],
@@ -66,6 +71,7 @@ export function CustomDrawerContent(props) {
     Posts: 'newspaper-outline',
     MyPosts: 'document-text-outline',
     Accounts: 'people-outline',
+    Reports: 'bar-chart-outline',
   };
 
   return (

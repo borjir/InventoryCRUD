@@ -46,6 +46,8 @@ export default function Login({ navigation }) {
       // Set global context role
       if (userData.role === 'admin') {
         setRoleFlag(1); // admin
+      } else {
+        setRoleFlag(0);
       }
 
       setUsername(userData.username); // optional if used

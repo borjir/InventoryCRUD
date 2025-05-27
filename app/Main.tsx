@@ -4,6 +4,7 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import Accounts from '../components/main/Accounts';
 import MyPosts from '../components/main/MyPosts';
 import Posts from '../components/main/Posts';
+import Reports from '../components/main/Reports';
 import {
   CustomDrawerContent,
   CustomHeaderLeft,
@@ -16,6 +17,8 @@ const Drawer = createDrawerNavigator();
 export default function Main() {
   const { roleFlag } = useAuth();
 
+  if (roleFlag === null || roleFlag === undefined) return null; // or return a loading spinner
+  
   return (
     <Drawer.Navigator
       initialRouteName="Posts"
@@ -37,6 +40,7 @@ export default function Main() {
     >
       <Drawer.Screen name="Posts" component={Posts} options={{ drawerLabel: 'All Posts' }}/>
       <Drawer.Screen name="MyPosts" component={MyPosts} options={{ drawerLabel: 'My Posts' }}/>
+      <Drawer.Screen name="Reports" component={Reports} options={{ drawerLabel: 'Reports' }} />
       {roleFlag == 1 && ( <Drawer.Screen name="Accounts" component={Accounts} options={{ drawerLabel: 'Accounts' }}/> )}
     </Drawer.Navigator>
   );

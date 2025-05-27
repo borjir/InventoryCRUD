@@ -88,12 +88,12 @@ export default function Posts() {
                 solid={liked}
               />
               {likeCount > 0 && (
-                <Text className="font-segoe text-white font-bold text-[15px] mr-3">
+                <Text className="font-segoe text-white font-bold text-[15px]">
                   {likeCount}
                 </Text>
               )}
             </TouchableOpacity>
-
+              <View className="mx-[2px]" />
             {/* Placeholder for comment button */}
             <TouchableOpacity 
             className="flex-row items-center gap-2"
