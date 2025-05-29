@@ -41,61 +41,63 @@ export default function MyPosts() {
     const commentCount = typeof post.commentCount === "number" ? post.commentCount : 0;
 
     return (
-      <View className="bg-[#161b22] p-[15px] rounded-lg mb-[10px] border-[1px] gap-2 border-[#30363d] flex-row justify-between items-center">
-        <View className="flex-1 pr-2">
-          <Text className="font-bold font-segoe text-white text-[18px]">
-            {post.title}
-          </Text>
-          <Text className="text-[#c9d1d9] font-segoe text-[14px]">
-            {post.date}
-          </Text>
-          <View className="flex-row gap-2 mt-[5px]">
-            <FontAwesome name="heart" size={18} color="#fa5e55" />
-            <Text className="text-white text-[14px] pr-2">{likeCount}</Text>
-            <FontAwesome name="comment" size={18} color="#58a6ff" />
-            <Text className="text-white text-[14px]">{commentCount}</Text>
+      <TouchableOpacity onPress={() => navigation.navigate("PostLogs", { postId: post.id })}>
+        <View className="bg-[#161b22] p-[15px] rounded-lg mb-[10px] border-[1px] gap-2 border-[#30363d] flex-row justify-between items-center">
+          <View className="flex-1 pr-2">
+            <Text className="font-bold font-segoe text-white text-[18px]">
+              {post.title}
+            </Text>
+            <Text className="text-[#c9d1d9] font-segoe text-[14px]">
+              {post.date}
+            </Text>
+            <View className="flex-row gap-2 mt-[5px]">
+              <FontAwesome name="heart" size={18} color="#fa5e55" />
+              <Text className="text-white text-[14px] pr-2">{likeCount}</Text>
+              <FontAwesome name="comment" size={18} color="#58a6ff" />
+              <Text className="text-white text-[14px]">{commentCount}</Text>
+            </View>
+          </View>
+          <View className="mr-[10px] flex-row gap-3 justify-center items-center">
+            <TouchableOpacity
+              onPress={() => navigation.navigate("EditPost", { post })}
+            >
+              <FontAwesome name="edit" size={24} color="#58a6ff" />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Delete Post",
+                  "Are you sure you want to delete this post?",
+                  [
+                    { text: "Cancel", style: "cancel" },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: async () => {
+                        const result = await deletePostById(post.id);
+                        if (result.success) {
+                          ToastAndroid.show(
+                            "Post deleted successfully",
+                            ToastAndroid.SHORT
+                          );
+                        } else {
+                          ToastAndroid.show(
+                            "Failed to delete post",
+                            ToastAndroid.SHORT
+                          );
+                        }
+                      },
+                    },
+                  ],
+                  { cancelable: true }
+                )
+              }
+            >
+              <FontAwesome name="trash" size={24} color="#fa5e55" />
+            </TouchableOpacity>
           </View>
         </View>
-        <View className="mr-[10px] flex-row gap-3 justify-center items-center">
-          <TouchableOpacity
-            onPress={() => navigation.navigate("EditPost", { post })}
-          >
-            <FontAwesome name="edit" size={24} color="#58a6ff" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() =>
-              Alert.alert(
-                "Delete Post",
-                "Are you sure you want to delete this post?",
-                [
-                  { text: "Cancel", style: "cancel" },
-                  {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: async () => {
-                      const result = await deletePostById(post.id);
-                      if (result.success) {
-                        ToastAndroid.show(
-                          "Post deleted successfully",
-                          ToastAndroid.SHORT
-                        );
-                      } else {
-                        ToastAndroid.show(
-                          "Failed to delete post",
-                          ToastAndroid.SHORT
-                        );
-                      }
-                    },
-                  },
-                ],
-                { cancelable: true }
-              )
-            }
-          >
-            <FontAwesome name="trash" size={24} color="#fa5e55" />
-          </TouchableOpacity>
-        </View>
-      </View>
+      </TouchableOpacity>
     );
   }, [navigation]);
 

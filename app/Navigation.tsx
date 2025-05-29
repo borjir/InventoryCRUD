@@ -5,6 +5,7 @@ import Register from '@/components/login/Register';
 import AddPost from '@/components/main/AddPost'; // Adjust path
 import EditPost from '@/components/main/EditPost';
 import PostDetails from '@/components/main/PostDetails';
+import PostLogs from '@/components/main/PostLogs';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -58,6 +59,19 @@ export default function Navigation() {
           options={{
             headerShown: true,
             title: 'Edit Post',
+             headerStyle: {
+                backgroundColor: '#0d1117',
+              },
+            headerTintColor: '#fff',
+            headerLeft: () => <CloseButton />,
+          }}
+        />
+        <Stack.Screen
+          name="PostLogs"
+          component={PostLogs}
+          options={{
+            headerShown: true,
+            title: 'Post Logs',
              headerStyle: {
                 backgroundColor: '#0d1117',
               },
