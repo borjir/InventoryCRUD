@@ -84,9 +84,8 @@ export default function AddPost() {
               await addPost(title, imageUri, description, username);
               ToastAndroid.show("Post added successfully!", ToastAndroid.SHORT);
               navigation.replace("Main", { screen: "MyPosts" });
-            } catch (error) {
-              console.error(error);
-              ToastAndroid.show("Failed to add post", ToastAndroid.SHORT);
+            } catch (error: any) {
+              Alert.alert("Error", error.message || "Failed to add post");
             } finally {
               setLoading(false);
             }

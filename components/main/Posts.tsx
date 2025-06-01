@@ -29,9 +29,17 @@ export default function Posts() {
   const toggleLike = (postId: string, currentLikes: Record<string, boolean>) => {
     const liked = !!currentLikes[username];
     const postLikesRef = ref(db, `posts/${postId}/likes`);
-    update(postLikesRef, {
-      [username]: liked ? null : true, // Remove like if already liked
-    });
+    if (liked) {
+      update(postLikesRef, {
+        [username]: null,
+      });
+    } else {
+      update(postLikesRef, {
+        [username]: {
+          timestamp: Date.now(),
+        },
+      });
+    }
   };
 
   const filteredPosts = useMemo(() => {
