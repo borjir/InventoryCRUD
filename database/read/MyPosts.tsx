@@ -14,6 +14,7 @@ export interface Post {
   author: string;
   likes?: Record<string, boolean>;
   commentCount?: number;
+  timestamp?: number; // Add this field
 }
 
 export const listenToUserPosts = (
@@ -44,8 +45,9 @@ export const listenToUserPosts = (
             author: value.post_author || "",
             likes: value.likes || {},
             commentCount: value.commentCount || 0,
+            timestamp: value.post_timestamp || 0, // Safely fallback to 0
           }))
-          .sort((a, b) => dayjs(b.date).valueOf() - dayjs(a.date).valueOf());
+          .sort((a, b) => b.timestamp! - a.timestamp!); // Newest first
       }
 
       callback(userPosts);
